@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
-import { Plane, MapPin, Users, Heart, LogOut, User, Briefcase, MessageCircle, Settings } from "lucide-react";
-import { TravelerCard, Traveler } from "../components/TravelerCard";
-import { ProfileDialog } from "../components/ProfileDialog";
+import { Plane, Users, Heart, LogOut, User, Briefcase, MessageCircle } from "lucide-react";
+import { TravelerCard } from "../components/TravelerCard";
 import { FilterBar } from "../components/FilterBar";
-import { ProfilePage, UserProfile } from "../components/ProfilePage";
+import { ProfilePage } from "../components/ProfilePage";
 import { TripsPage } from "../components/TripsPage";
 import { ChatPage } from "../components/ChatPage";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
-import { Toaster } from "../ui/sonner";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +16,7 @@ import { API_BASE_URL } from "../config";
 
 export default function Home() {
     const navigate = useNavigate();
-    const { user, login, logout } = useAuth();
+    const { user, logout } = useAuth();
 
    // Navigation tab states
    const [currentPage, setCurrentPage] = useState("browse");
@@ -37,28 +35,6 @@ export default function Home() {
         logout();
         toast.success(`Successfully logged out!`);
         navigate("/");
-    }
-
-    async function fetchFilteredTrips(dest, mode) {
-        try {
-            const token = localStorage.getItem("token");
-            const params = new URLSearchParams();
-            if (dest) params.append("dest", dest);
-            if (mode) params.append("mode", mode);
-            const res = await fetch(`${API_BASE_URL}/api/matches/filter?${params.toString()}`, {
-                method: "GET",
-                headers: {
-                "Content-Type": "application/json", 
-                "Authorization": `Bearer ${token}`
-                }
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Update failed");
-            toast.success(`${data.length} trips found!`);
-            setFilteredTrips(data);
-        } catch (err) {
-            alert(err.message);
-        }
     }
 
     useEffect(() => {

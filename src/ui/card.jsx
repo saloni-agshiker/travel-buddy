@@ -28,7 +28,9 @@ function CardHeader({ className, ...props }) {
 
 function CardTitle({ className, ...props }) {
   return (
-    <h4
+    <div
+      role="heading"
+      aria-level={4}
       data-slot="card-title"
       className={cn("leading-none", className)}
       {...props}

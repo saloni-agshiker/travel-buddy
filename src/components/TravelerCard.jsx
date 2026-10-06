@@ -1,6 +1,5 @@
-import { MapPin, Calendar, Heart, MessageCircle, Users } from "lucide-react";
+import { MapPin, Calendar, Heart, MessageCircle } from "lucide-react";
 import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
 import { Card } from "../ui/card";
 
 
@@ -29,10 +28,6 @@ export function TravelerCard({ traveler, onConnect, onViewProfile }) {
     "11": "Nov",
     "12": "Dec"
   };
-
-  async function onViewProfile(e) {
-    console.log(e);
-  }
 
   // Helper function to split Date object (from MongoDB) to date and time (for front-end React)
   function splitDateAndTime(dateVal, dateType = "reg", type, isEditing = false) {

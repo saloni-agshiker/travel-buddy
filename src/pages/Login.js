@@ -16,8 +16,7 @@ import { API_BASE_URL } from "../config";
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const { user, login, logout } = useAuth();
+  const { login } = useAuth();
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -39,7 +38,6 @@ export default function Login() {
   async function handleLogin(e) {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -68,7 +66,6 @@ export default function Login() {
   async function handleSignup(e) {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
@@ -88,7 +85,7 @@ export default function Login() {
       navigate("/home");
 
     } catch (err) {
-      setError(err.message);
+      alert(err.message);
     } finally {
       setIsLoading(false);
     }

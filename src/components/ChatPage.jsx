@@ -110,10 +110,6 @@ export function ChatPage() {
     conv.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const formatTime = (dateString) => {
-    return dateString;
-  };
-
   const formatMessageTime = (date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();

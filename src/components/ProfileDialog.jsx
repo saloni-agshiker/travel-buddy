@@ -1,8 +1,7 @@
-import { MapPin, Calendar, Globe, Users, MessageCircle, Heart, X } from "lucide-react";
+import { MapPin, Calendar, Globe, MessageCircle, Heart } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Traveler } from "./TravelerCard";
 
 
 export function ProfileDialog({ traveler, open, onOpenChange, onConnect }) {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Mail, MapPin, Globe, Camera, Save } from "lucide-react";
+import { MapPin, Globe, Camera, Save } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -118,15 +118,6 @@ export function ProfilePage() {
   };
 
   
-  const toggleInterest = (interest) => {
-    setProfile(prev => ({
-      ...prev,
-      interests: prev.interests.includes(interest)
-        ? prev.interests.filter(i => i !== interest)
-        : [...prev.interests, interest]
-    }));
-  };
-  
   const toggleLanguage = (language) => {
     setProfile(prev => ({
       ...prev,
@@ -171,6 +162,7 @@ export function ProfilePage() {
             <div className="relative">
               <img 
                 src={ user?.profilePic || "../logo.svg"} 
+                alt="Profile"
                 className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
               />
               {isEditing && (

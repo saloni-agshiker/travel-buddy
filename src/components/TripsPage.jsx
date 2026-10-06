@@ -3,16 +3,12 @@ import { Plus, Plane, Calendar, Clock, MapPin, Users, Car, Bus, Edit, Trash2 } f
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Badge } from "../ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { API_BASE_URL } from "../config";
-
-const normalizeArr = (array) =>
-  Array.isArray(array) ? array : [];
 
 // Frontend ↔ Backend enum mapping
 const TRANSPORT_OPTIONS = [
@@ -108,9 +104,11 @@ export function TripsPage() {
   const [trips, setTrips] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user?._id) return;
+
     async function fetchTrips() {
       try {
       const res = await fetch(`${API_BASE_URL}/api/trips/trips?userId=${user._id}`, {
@@ -128,7 +126,7 @@ export function TripsPage() {
       }
     }
     fetchTrips();
-  }, [trips]);
+  }, [user?._id]);
 
   const [newTripData, setNewTripData] = useState(initialTripData);
 
@@ -259,7 +257,6 @@ export function TripsPage() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={(open) => {
           setDialogOpen(open);
-          {/* if (!open) resetForm(); FIX LATER */}
         }}>
           <DialogTrigger asChild>
             <Button>
@@ -482,7 +479,6 @@ export function TripsPage() {
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => {
                 setDialogOpen(false);
-                {/* resetForm(); FIX LATER */}
               }}>
                 Cancel
               </Button>

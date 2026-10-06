@@ -1,10 +1,5 @@
 import { Search, SlidersHorizontal } from "lucide-react";
 import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import { useAuth } from "../context/AuthContext";
-import { toast } from "sonner";
-import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
@@ -40,13 +35,6 @@ export function FilterBar({
   selectedTransportMode,
   onSelectedTransportMode
 }) {
-  const hasActiveFilters = selectedDestination !== "ALL" || selectedTransportMode !== "ALL";
-
-  const clearFilters = () => {
-    onDestinationChange("All Destinations");
-    onSelectedTransportMode("All Transport Modes");
-  };
-
   return (
     <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
       <div className="container mx-auto px-4 py-4">

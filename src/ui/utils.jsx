@@ -1,5 +1,5 @@
 // clsx creates class names seamlessly
-import { clsx, ClassValue } from "clsx";
+import { clsx } from "clsx";
 
 // tailwind merge understands Tailwind CSS rules & removes conflicts
 import { twMerge } from "tailwind-merge";
