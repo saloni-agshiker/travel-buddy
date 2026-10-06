@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Badge } from "../ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
+import { API_BASE_URL } from "../config";
 
 const normalizeArr = (array) =>
   Array.isArray(array) ? array : [];
@@ -112,7 +113,7 @@ export function TripsPage() {
   useEffect(() => {
     async function fetchTrips() {
       try {
-        const res = await fetch(`http://localhost:5001/api/trips/trips?userId=${user._id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/trips/trips?userId=${user._id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json", 
@@ -143,7 +144,7 @@ export function TripsPage() {
   async function handleAddTrip() {
     const token = localStorage.getItem("token");
     try {
-        const res = await fetch(`http://localhost:5001/api/trips/trips`, {
+        const res = await fetch(`${API_BASE_URL}/api/trips/trips`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -197,7 +198,7 @@ export function TripsPage() {
     const token = localStorage.getItem("token");
     try {
       const tripId = newTripData.id;
-      const res = await fetch(`http://localhost:5001/api/trips/trips/${tripId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/trips/trips/${tripId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json", 
@@ -233,7 +234,7 @@ export function TripsPage() {
   async function handleDeleteTrip(tripId) {
     const token = localStorage.getItem("token");
     try {
-        const res = await fetch(`http://localhost:5001/api/trips/trips/${tripId}?userId=${user._id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/trips/trips/${tripId}?userId=${user._id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

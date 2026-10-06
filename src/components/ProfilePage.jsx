@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Badge } from "../ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
+import { API_BASE_URL } from "../config";
 
 const availableLanguages = [
   "English",
@@ -77,7 +78,7 @@ export function ProfilePage() {
       const temp = {};
       if (profile.year) temp.year = profile.year;
       if (profile.bio !== undefined) temp.bio = profile.bio;
-      const res = await fetch("http://localhost:5001/api/users/me", {
+      const res = await fetch(`${API_BASE_URL}/api/users/me`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json", 

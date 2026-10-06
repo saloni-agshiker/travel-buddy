@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { API_BASE_URL } from "../config";
 
 
 export default function Home() {
@@ -44,7 +45,7 @@ export default function Home() {
             const params = new URLSearchParams();
             if (dest) params.append("dest", dest);
             if (mode) params.append("mode", mode);
-            const res = await fetch(`http://localhost:5001/api/matches/filter?${params.toString()}`, {
+            const res = await fetch(`${API_BASE_URL}/api/matches/filter?${params.toString()}`, {
                 method: "GET",
                 headers: {
                 "Content-Type": "application/json", 
@@ -67,11 +68,11 @@ export default function Home() {
                 const hasFilters = (selectedDestination && selectedDestination !== "ALL")|| (selectedTransportMode && selectedTransportMode !== "ALL");
 
                 const url = hasFilters
-                    ? `http://localhost:5001/api/matches/filter?${new URLSearchParams({
+                    ? `${API_BASE_URL}/api/matches/filter?${new URLSearchParams({
                         ...(selectedDestination && { dest: selectedDestination }),
                         ...(selectedTransportMode && { mode: selectedTransportMode })
                     }).toString()}`
-                    : `http://localhost:5001/api/matches/allMatches`;
+                    : `${API_BASE_URL}/api/matches/allMatches`;
 
                 console.log(url);
                 const res = await fetch(url, {
