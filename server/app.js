@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const { connectToDatabase } = require("./db");
 const authRoutes = require("./routes/auth");
 const profileRoutes = require("./routes/users");
 const tripRoutes = require("./routes/trips");
@@ -29,6 +30,20 @@ app.use(
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
+// Vercel loads this module in a serverless function, so there is no persistent
+// server startup hook at which to reliably open MongoDB. Connect lazily and
+// reuse Mongoose's cached connection for later invocations.
+app.use("/api", async (_req, res, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (error) {
+    console.error("Mongo connection error:", error);
+    res.status(503).json({ message: "Database service is unavailable" });
+  }
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", profileRoutes);
 app.use("/api/trips", tripRoutes);
