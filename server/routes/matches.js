@@ -2,6 +2,9 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const Trip = require("../models/Trip");
 
+const ALL_DESTINATION_VALUES = new Set(["ALL", "All Destinations"]);
+const ALL_TRANSPORT_MODE_VALUES = new Set(["ALL", "All Transport Modes", "All transport modes"]);
+
 // creates mini Express app (group of routes related to authentication)
 const router = express.Router();
 
@@ -33,11 +36,11 @@ router.get("/filter", requireAuth, async (req, res) => {
             userId: { $ne: req.userId }
         }
 
-        if (req.query.dest) {
+        if (req.query.dest && !ALL_DESTINATION_VALUES.has(req.query.dest)) {
             query.depAirport = req.query.dest;
         };
 
-        if (req.query.mode) {
+        if (req.query.mode && !ALL_TRANSPORT_MODE_VALUES.has(req.query.mode)) {
             query.transportMode = req.query.mode;
         };
         const trips = await Trip.find(query).populate("userId", "name email bio residence college");

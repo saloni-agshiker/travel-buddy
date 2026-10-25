@@ -13,6 +13,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { API_BASE_URL } from "../config";
 
+const ALL_DESTINATION_VALUES = new Set(["ALL", "All Destinations"]);
+const ALL_TRANSPORT_MODE_VALUES = new Set(["ALL", "All Transport Modes", "All transport modes"]);
 
 export default function Home() {
     const navigate = useNavigate();
@@ -41,14 +43,20 @@ export default function Home() {
         async function fetchTrips() {
             try {
                 const token = localStorage.getItem("token");
-                const hasFilters = (selectedDestination && selectedDestination !== "ALL")|| (selectedTransportMode && selectedTransportMode !== "ALL");
+                const destinationFilter = !ALL_DESTINATION_VALUES.has(selectedDestination)
+                    ? selectedDestination
+                    : undefined;
+                const transportModeFilter = !ALL_TRANSPORT_MODE_VALUES.has(selectedTransportMode)
+                    ? selectedTransportMode
+                    : undefined;
+                const hasFilters = Boolean(destinationFilter || transportModeFilter);
 
                 const url = hasFilters
                     ? `${API_BASE_URL}/api/matches/filter?${new URLSearchParams({
-                        ...(selectedDestination && { dest: selectedDestination }),
-                        ...(selectedTransportMode && { mode: selectedTransportMode })
+                        ...(destinationFilter && { dest: destinationFilter }),
+                        ...(transportModeFilter && { mode: transportModeFilter })
                     }).toString()}`
-                    : `${API_BASE_URL}/api/matches/allMatches`;
+                    : `${API_BASE_URL}/api/matches/filter`;
 
                 console.log(url);
                 const res = await fetch(url, {
@@ -61,7 +69,7 @@ export default function Home() {
         
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message || "Update failed");
-                toast.success(`${data.length} trips found!`);
+                toast.success(`${data.length} ${data.length === 1 ? "trip" : "trips"} found!`);
                 setFilteredTrips(data);
             } catch (err) {
                 alert(err.message);
@@ -79,6 +87,11 @@ export default function Home() {
         setSelectedTransportMode(mode);
         //fetchFilteredTrips(selectedDestination, mode);
     };
+
+    function handleResetFilters() {
+        setSelectedDestination("ALL");
+        setSelectedTransportMode("ALL");
+    }
 
     async function handleConnect() {
         toast.success("Connected!");
@@ -170,6 +183,7 @@ export default function Home() {
                 onDestinationChange={handleDestinationChange}
                 selectedTransportMode={selectedTransportMode}
                 onSelectedTransportMode={handleModeChange}
+                onResetFilters={handleResetFilters}
             />
             {/* Results Section */}
             <section className="container mx-auto px-4 py-8">
@@ -195,9 +209,8 @@ export default function Home() {
                     variant="outline"
                     onClick={() => {
                         setSearchQuery("");
-                        setSelectedDestination("All Destinations");
-                        setSelectedTransportMode("All Transport Modes");
-                        //fetchAllTrips();
+                        setSelectedDestination("ALL");
+                        setSelectedTransportMode("ALL");
                     }}
                     >
                     Clear All Filters

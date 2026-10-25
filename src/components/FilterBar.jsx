@@ -33,7 +33,8 @@ export function FilterBar({
   selectedDestination,
   onDestinationChange,
   selectedTransportMode,
-  onSelectedTransportMode
+  onSelectedTransportMode,
+  onResetFilters
 }) {
   return (
     <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
@@ -54,7 +55,15 @@ export function FilterBar({
         {/* Filter Controls */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Reset filters"
+              title="Reset filters"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </button>
             <span className="text-sm">Filters:</span>
           </div>
 
