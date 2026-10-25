@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Plane, Users, Heart, LogOut, User, Briefcase, MessageCircle } from "lucide-react";
 import { TravelerCard } from "../components/TravelerCard";
 import { FilterBar } from "../components/FilterBar";
@@ -26,8 +26,26 @@ export default function Home() {
    // Filter bar states
    const [filteredTrips, setFilteredTrips] = useState([]);
    const [searchQuery, setSearchQuery] = useState("");
-   const [selectedDestination, setSelectedDestination] = useState("ALL");
-   const [selectedTransportMode, setSelectedTransportMode] = useState("ALL");
+    const [selectedDestination, setSelectedDestination] = useState("ALL");
+    const [selectedTransportMode, setSelectedTransportMode] = useState("ALL");
+    const visibleTrips = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return filteredTrips;
+
+        return filteredTrips.filter((trip) => {
+            const searchableValues = [
+                trip.userId?.name,
+                trip.userId?.residence,
+                trip.userId?.college,
+                trip.depAirport,
+                trip.arrAirport,
+            ];
+
+            return searchableValues.some((value) =>
+                String(value ?? "").toLowerCase().includes(query)
+            );
+        });
+    }, [filteredTrips, searchQuery]);
 
    // Profile page states
    const [profileDialogOpen, setProfileDialogOpen] = useState(false);
@@ -193,12 +211,12 @@ export default function Home() {
                     All travel buddies
                     </h3>
                     <p className="text-muted-foreground">
-                    {filteredTrips.length} {filteredTrips.length === 1 ? 'traveler' : 'travelers'} found
+                    {visibleTrips.length} {visibleTrips.length === 1 ? 'traveler' : 'travelers'} found
                     </p>
                 </div>
                 </div>
 
-                {filteredTrips.length === 0 ? (
+                {visibleTrips.length === 0 ? (
                 <div className="text-center py-16">
                     <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-xl mb-2">No travelers found</h3>
@@ -218,7 +236,7 @@ export default function Home() {
                 </div>
                 ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredTrips.map((traveler) => (
+                    {visibleTrips.map((traveler) => (
                     <TravelerCard
                         key={traveler.id}
                         traveler={traveler}

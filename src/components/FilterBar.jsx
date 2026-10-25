@@ -22,7 +22,7 @@ const DESTINATIONS = [
 const TRANSPORT_MODES = [
   { label: "All transport modes", value: "ALL" },
   { label: "Personal car", value: "Personal car" },
-  { label: "Rideshare", value: "Rideshare" } ,
+  { label: "Rideshare", value: "Rideshare" },
   { label: "Public transit", value: "Public transit" },
   { label: "Other", value: "Other" }
 ];
@@ -44,7 +44,7 @@ export function FilterBar({
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name, destination, or interests..."
+              placeholder="Search by name, city, airport code, etc..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className="pl-10"

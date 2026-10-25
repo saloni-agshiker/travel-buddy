@@ -61,7 +61,7 @@ export function TravelerCard({ traveler, onConnect, onViewProfile }) {
   }
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
+    <Card className="flex h-full flex-col overflow-hidden transition-shadow cursor-pointer group hover:shadow-lg">
       {/* Destination Image
       <div className="relative h-48 overflow-hidden" onClick={() => onViewProfile(traveler)}>
         
@@ -78,7 +78,7 @@ export function TravelerCard({ traveler, onConnect, onViewProfile }) {
       </div>
        */}
       {/* Profile Section */}
-      <div className="p-4" onClick={() => onViewProfile(traveler)}>
+      <div className="flex-1 p-4" onClick={() => onViewProfile(traveler)}>
         {/* User Info */}
         <div className="flex items-start gap-3 mb-3">
           {/*}
@@ -138,7 +138,7 @@ export function TravelerCard({ traveler, onConnect, onViewProfile }) {
       
 
       {/* Actions */}
-      <div className="px-4 pb-4 flex gap-2">
+      <div className="mt-auto flex gap-2 px-4 pb-4">
         <Button 
           onClick={(e) => {
             e.stopPropagation();
