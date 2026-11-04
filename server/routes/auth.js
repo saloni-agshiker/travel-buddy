@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { sendWelcomeBackEmail } = require("../services/email");
 
 // creates mini Express app (group of routes related to authentication)
 const router = express.Router();
@@ -54,6 +55,13 @@ router.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+
+    // A mail delivery issue must not prevent a valid user from signing in.
+    try {
+      await sendWelcomeBackEmail(user);
+    } catch (emailError) {
+      console.error("Welcome-back email failed:", emailError.message);
+    }
 
     return res.status(201).json({
       token,

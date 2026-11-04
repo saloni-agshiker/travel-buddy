@@ -16,6 +16,7 @@ import { API_BASE_URL } from "../config";
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const { login } = useAuth();
 
   // Login form state
@@ -91,21 +92,37 @@ export default function Login() {
     }
   }
 
-  async function handleForgotPassword(e) {
-    e.preventDefault();
-    setIsLoading(true);
+  async function sendPasswordReset(email, showConfirmation = false) {
+    setIsResettingPassword(true);
 
     // Mock email sending delay
     setTimeout(() => {
-      if (forgotPasswordEmail) {
+      if (email) {
         toast.success("Password reset email sent!");
-        setResetEmailSent(true);
+        if (showConfirmation) setResetEmailSent(true);
       } else {
         toast.error("Please enter your email");
       }
-      setIsLoading(false);
+      setIsResettingPassword(false);
     }, 1000);
-  };
+  }
+
+  function handleForgotPassword(e) {
+    e.preventDefault();
+    sendPasswordReset(forgotPasswordEmail.trim(), true);
+  }
+
+  function handleForgotPasswordClick() {
+    const email = loginEmail.trim();
+
+    if (email) {
+      setForgotPasswordEmail(email);
+      sendPasswordReset(email);
+      return;
+    }
+
+    setShowForgotPassword(true);
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -241,7 +258,7 @@ export default function Login() {
                       type="button"
                       variant="link"
                       className="px-0 h-auto"
-                      onClick={() => setShowForgotPassword(true)}
+                      onClick={handleForgotPasswordClick}
                     >
                       Forgot password?
                     </Button>
@@ -387,8 +404,8 @@ export default function Login() {
                       </div>
                     </div>
 
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Sending email..." : "Send Reset Email"}
+                    <Button type="submit" className="w-full" disabled={isResettingPassword}>
+                      {isResettingPassword ? "Sending email..." : "Send Reset Email"}
                     </Button>
 
                     {resetEmailSent && (
@@ -458,8 +475,8 @@ export default function Login() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1 bg-teal-500 hover:bg-teal-600" disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Send Reset Link"}
+                <Button type="submit" className="flex-1 bg-teal-500 hover:bg-teal-600" disabled={isResettingPassword}>
+                  {isResettingPassword ? "Sending..." : "Send Reset Link"}
                 </Button>
               </div>
             </form>
@@ -488,7 +505,7 @@ export default function Login() {
                   size="sm"
                   onClick={() => {
                     setResetEmailSent(false);
-                    setIsLoading(false);
+                  setIsResettingPassword(false);
                   }}
                 >
                   Try Again
