@@ -142,7 +142,7 @@ export function TravelerCard({ traveler, onConnect, onViewProfile }) {
         <Button 
           onClick={(e) => {
             e.stopPropagation();
-            onConnect(traveler.id);
+            onConnect(traveler._id);
           }}
           className="flex-1"
         >

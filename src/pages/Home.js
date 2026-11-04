@@ -208,7 +208,7 @@ export default function Home() {
                 <div className="flex items-center justify-between mb-6">
                 <div>
                     <h3 className="text-2xl mb-1">
-                    All travel buddies
+                    Good matches
                     </h3>
                     <p className="text-muted-foreground">
                     {visibleTrips.length} {visibleTrips.length === 1 ? 'traveler' : 'travelers'} found
@@ -238,7 +238,7 @@ export default function Home() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {visibleTrips.map((traveler) => (
                     <TravelerCard
-                        key={traveler.id}
+                        key={traveler._id}
                         traveler={traveler}
                         onConnect={handleConnect}
                         onViewProfile={handleViewProfile}
