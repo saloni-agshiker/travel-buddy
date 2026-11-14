@@ -36,3 +36,16 @@
     transform: rotate(360deg);
   }
 }
+/* Keep the dismiss control in the familiar top-right position and slide a
+   manually closed notification out toward the edge of the screen. */
+[data-sonner-toaster][data-x-position='right'] {
+  --toast-close-button-start: unset;
+  --toast-close-button-end: 0;
+  --toast-close-button-transform: translate(35%, -35%);
+}
+
+[data-sonner-toaster][data-x-position='right']
+  [data-sonner-toast][data-removed='true'][data-front='true'][data-swipe-out='false'] {
+  transform: translateX(calc(100% + 24px));
+  opacity: 0;
+}

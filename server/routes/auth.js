@@ -13,7 +13,7 @@ router.post("/signup", async (req, res) => {
     const { signupName, signupEmail, signupPassword, signupConfirmPassword } = req.body;
     if (!signupName || !signupEmail || !signupPassword) return res.status(400).json({ message: "Name, email, and password required" });
     if (signupPassword.length < 8) return res.status(400).json({ message: "Password must be at least 8 characters" });
-    if (signupPassword != signupConfirmPassword) return res.status(400).json({ message: "Passwords do not match"});
+    if (signupPassword != signupConfirmPassword) return res.status(400).json({ message: "Passwords do not match" });
 
     const email = signupEmail.toLowerCase();
     const existing = await User.findOne({ email });
@@ -21,7 +21,7 @@ router.post("/signup", async (req, res) => {
 
     const passwordHash = await bcrypt.hash(signupPassword, 12);
 
-    const user = await User.create({ email, passwordHash, name: signupName});
+    const user = await User.create({ email, passwordHash, name: signupName });
 
     const token = jwt.sign(
       { sub: user._id.toString(), email: user.email },
@@ -69,6 +69,19 @@ router.post("/login", async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Forgot Password (generate token) route - when server receives POST /api/auth/forgot-password
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body
+    const user = await User.findOne({ email: loginEmail.toLowerCase() });
+    //if user
+
+    // if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  } catch (err) {
+
   }
 });
 

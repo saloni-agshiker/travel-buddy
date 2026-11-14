@@ -11,7 +11,12 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Toaster richColors position="top-right" />
+        <Toaster
+          richColors
+          position="top-right"
+          closeButton
+          toastOptions={{ closeButtonAriaLabel: "Dismiss notification" }}
+        />
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<Home />} />

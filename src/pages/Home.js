@@ -15,6 +15,31 @@ import { API_BASE_URL } from "../config";
 
 const ALL_DESTINATION_VALUES = new Set(["ALL", "All Destinations"]);
 const ALL_TRANSPORT_MODE_VALUES = new Set(["ALL", "All Transport Modes", "All transport modes"]);
+const pendingTripRequests = new Map();
+
+function fetchTripsOnce(url, token) {
+    const requestKey = `${url}:${token ?? ""}`;
+
+    if (!pendingTripRequests.has(requestKey)) {
+        const request = fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            }
+        }).then(async (res) => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Unable to load trips");
+            return data;
+        }).finally(() => {
+            pendingTripRequests.delete(requestKey);
+        });
+
+        pendingTripRequests.set(requestKey, request);
+    }
+
+    return pendingTripRequests.get(requestKey);
+}
 
 export default function Home() {
     const navigate = useNavigate();
@@ -58,6 +83,8 @@ export default function Home() {
     }
 
     useEffect(() => {
+        let isCurrentRequest = true;
+
         async function fetchTrips() {
             try {
                 const token = localStorage.getItem("token");
@@ -76,24 +103,20 @@ export default function Home() {
                     }).toString()}`
                     : `${API_BASE_URL}/api/matches/filter`;
 
-                console.log(url);
-                const res = await fetch(url, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-        
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message || "Update failed");
+                const data = await fetchTripsOnce(url, token);
+                if (!isCurrentRequest) return;
+
                 toast.success(`${data.length} ${data.length === 1 ? "trip" : "trips"} found!`);
                 setFilteredTrips(data);
             } catch (err) {
-                alert(err.message);
+                if (isCurrentRequest) alert(err.message);
             }
         }
         fetchTrips();
+
+        return () => {
+            isCurrentRequest = false;
+        };
       }, [selectedDestination, selectedTransportMode]);
 
     async function handleDestinationChange(dest) {
