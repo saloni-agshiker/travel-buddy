@@ -107,4 +107,57 @@ async function sendWelcomeBackEmail(user) {
   });
 }
 
-module.exports = { sendWelcomeBackEmail };
+async function sendPasswordResetEmail(user, resetToken) {
+  const transporter = getTransporter();
+  const firstName = user.name.trim().split(/\s+/)[0] || "traveler";
+  const safeFirstName = escapeHtml(firstName);
+  const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
+  const clientOrigin = (process.env.CLIENT_ORIGIN || "http://localhost:3000")
+    .split(",")[0]
+    .trim()
+    .replace(/\/$/, "");
+  const resetUrl = `${clientOrigin}/forgot-password/${encodeURIComponent(resetToken)}?email=${encodeURIComponent(user.email)}`;
+
+  return transporter.sendMail({
+    from: { name: "TravelBuddy", address: from },
+    to: user.email,
+    subject: "Reset your TravelBuddy password",
+    text: `Hi ${firstName},\n\nWe received a request to reset your TravelBuddy password. Reset it here: ${resetUrl}\n\nThis link expires in 30 minutes. If you did not request this, you can safely ignore this email.`,
+    html: `
+      <!doctype html>
+      <html>
+        <body style="margin:0;padding:0;background-color:#f0fdfa;font-family:Arial,Helvetica,sans-serif;color:#172554;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f0fdfa;padding:28px 12px;">
+            <tr>
+              <td align="center">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background-color:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(13,148,136,.15);">
+                  <tr>
+                    <td style="padding:28px 32px;background:linear-gradient(135deg,#14b8a6 0%,#0891b2 55%,#2563eb 100%);color:#ffffff;">
+                      <p style="margin:0 0 10px;font-size:15px;font-weight:700;letter-spacing:.5px;">✈&nbsp; TRAVELBUDDY</p>
+                      <h1 style="margin:0;font-size:30px;line-height:1.2;">Reset your password</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:32px;">
+                      <p style="margin:0 0 16px;font-size:17px;line-height:1.55;color:#334155;">Hi ${safeFirstName},</p>
+                      <p style="margin:0 0 26px;font-size:17px;line-height:1.55;color:#334155;">We received a request to reset your TravelBuddy password. Click the button below to choose a new one.</p>
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:26px;">
+                        <tr>
+                          <td style="border-radius:9px;background-color:#0d9488;">
+                            <a href="${resetUrl}" style="display:inline-block;padding:14px 22px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;">Reset Password</a>
+                          </td>
+                        </tr>
+                      </table>
+                      <p style="margin:0;font-size:14px;line-height:1.5;color:#64748b;">This link expires in 30 minutes. If you did not request a password reset, you can safely ignore this email.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>`,
+  });
+}
+
+module.exports = { sendWelcomeBackEmail, sendPasswordResetEmail };

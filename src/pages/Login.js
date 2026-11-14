@@ -92,24 +92,43 @@ export default function Login() {
     }
   }
 
-  async function sendPasswordReset(email, showConfirmation = false) {
-    setIsResettingPassword(true);
+  async function sendPasswordReset(email) {
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      toast.error("Please enter your email");
+      return;
+    }
 
-    // Mock email sending delay
-    setTimeout(() => {
-      if (email) {
-        toast.success("Password reset email sent!");
-        if (showConfirmation) setResetEmailSent(true);
-      } else {
-        toast.error("Please enter your email");
+    setIsResettingPassword(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail })
+      });
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        throw new Error("Password reset service is unavailable. Please try again after the server has been updated.");
       }
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to start password reset");
+      }
+
+      toast.success(data.message);
+      setForgotPasswordEmail(normalizedEmail);
+      setResetEmailSent(true);
+      setShowForgotPassword(true);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
       setIsResettingPassword(false);
-    }, 1000);
+    }
   }
 
   function handleForgotPassword(e) {
     e.preventDefault();
-    sendPasswordReset(forgotPasswordEmail.trim(), true);
+    sendPasswordReset(forgotPasswordEmail);
   }
 
   function handleForgotPasswordClick() {
@@ -487,7 +506,7 @@ export default function Login() {
                   <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <p className="text-sm text-green-900">
-                      We've sent a password reset link to <strong>{forgotPasswordEmail}</strong>
+                      If an account exists for <strong>{forgotPasswordEmail}</strong>, a password reset link is on its way.
                     </p>
                     <p className="text-xs text-green-700">
                       Please check your inbox and follow the instructions to reset your password.

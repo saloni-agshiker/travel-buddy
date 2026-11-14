@@ -16,10 +16,10 @@ const LANGUAGES = [
 
 const INTERESTS = [
   "Surfing",
-  "Yoga", 
+  "Yoga",
   "Photography",
   "Hiking",
-  "Skiing", 
+  "Skiing",
   "Food & Dining",
   "Museums",
   "Nightlife",
@@ -38,7 +38,9 @@ const userSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
-    name: { type: String, default: "" }, 
+    resetPasswordToken: { type: String, required: false, default: "" },
+    resetPasswordExpires: { type: Date, required: false, default: null },
+    name: { type: String, default: "" },
     college: { type: String, default: "" },
     residence: { type: String, default: "" },
     year: {
@@ -53,13 +55,13 @@ const userSchema = new mongoose.Schema(
       ],
       default: "Freshman"
     },
-    bio: { type: String, default: ""},
+    bio: { type: String, default: "" },
     languages: {
       type: [String],
       enum: LANGUAGES,
       default: []
     },
-    profilePic: { type: String, default: "https://api.dicebear.com/7.x/identicon/svg?seed=default"}
+    profilePic: { type: String, default: "https://api.dicebear.com/7.x/identicon/svg?seed=default" }
   },
   { timestamps: true }
 );
