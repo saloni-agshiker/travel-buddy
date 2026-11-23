@@ -74,6 +74,51 @@ export default function Home() {
 
    // Profile page states
    const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+   const [profileImageUrl, setProfileImageUrl] = useState("");
+   const profilePictureKey = user?.profilePicKey || user?.ProfilePicKey || "";
+
+    useEffect(() => {
+        if (!profilePictureKey) {
+            setProfileImageUrl("");
+            return undefined;
+        }
+        if (profilePictureKey.startsWith("http")) {
+            setProfileImageUrl(profilePictureKey);
+            return undefined;
+        }
+
+        let isCurrent = true;
+        let refreshTimer;
+
+        async function refreshProfileImageUrl() {
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch(
+                    `${API_BASE_URL}/api/users/me/profile-picture?key=${encodeURIComponent(profilePictureKey)}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || "Could not retrieve profile picture.");
+                if (!isCurrent) return;
+
+                setProfileImageUrl(data.url);
+                const expiresAt = Date.parse(data.expiresAt);
+                const refreshIn = Number.isFinite(expiresAt)
+                    ? Math.max(30_000, expiresAt - Date.now() - 5 * 60 * 1000)
+                    : 55 * 60 * 1000;
+                refreshTimer = window.setTimeout(refreshProfileImageUrl, refreshIn);
+            } catch (error) {
+                console.error("Profile-picture URL refresh failed:", error.message);
+            }
+        }
+
+        refreshProfileImageUrl();
+
+        return () => {
+            isCurrent = false;
+            window.clearTimeout(refreshTimer);
+        };
+    }, [profilePictureKey]);
 
     async function handleLogout(e) {
         e.preventDefault();
@@ -171,7 +216,15 @@ export default function Home() {
                     onClick={() => setProfileDialogOpen(true)}
                     className="bg-teal-50 border-teal-200 hover:bg-teal-100"
                 >
-                    <User className="w-4 h-4 mr-2" />
+                    {profileImageUrl ? (
+                        <img
+                            src={profileImageUrl}
+                            alt="Your profile"
+                            className="w-4 h-4 mr-2 rounded-full object-cover"
+                        />
+                    ) : (
+                        <User className="w-4 h-4 mr-2" />
+                    )}
                     <span className="hidden sm:inline">Profile</span>
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleLogout}>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapPin, Globe, Camera, Save } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -40,6 +40,14 @@ const normalizeArr = (array) =>
 export function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const { user, updateUser } = useAuth();
+  const imageInputRef = useRef(null);
+  const localImagePreviewRef = useRef("");
+  const pendingImageFileRef = useRef(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [localImagePreviewUrl, setLocalImagePreviewUrl] = useState("");
+  const [signedImageUrl, setSignedImageUrl] = useState("");
+  // Support existing user documents that used the original capitalized name.
+  const profilePictureKey = user?.profilePicKey || user?.ProfilePicKey || "";
 
   const [profile, setProfile] = useState(() => ({
     name: user?.name ?? "",
@@ -64,6 +72,90 @@ export function ProfilePage() {
       languages: normalizeArr(user?.languages),
     });
   }, [user]);
+
+  useEffect(() => {
+    const key = profilePictureKey;
+    if (!key || key.startsWith("http")) {
+      setSignedImageUrl("");
+      return undefined;
+    }
+
+    let isCurrent = true;
+    let refreshTimer;
+
+    async function refreshProfileImageUrl() {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/users/me/profile-picture?key=${encodeURIComponent(key)}`,
+          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        );
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Could not retrieve the profile picture.");
+        }
+        if (!isCurrent) return;
+
+        setSignedImageUrl(data.url);
+
+        // Renew five minutes before the one-hour URL expires.
+        const expiresAt = Date.parse(data.expiresAt);
+        const refreshIn = Number.isFinite(expiresAt)
+          ? Math.max(30_000, expiresAt - Date.now() - 5 * 60 * 1000)
+          : 55 * 60 * 1000;
+        refreshTimer = window.setTimeout(refreshProfileImageUrl, refreshIn);
+      } catch (error) {
+        // Keep the currently rendered URL in place and retry when the profile
+        // is next opened or the component remounts.
+        console.error("Profile-picture URL refresh failed:", error.message);
+      }
+    }
+
+    refreshProfileImageUrl();
+
+    return () => {
+      isCurrent = false;
+      window.clearTimeout(refreshTimer);
+    };
+  }, [profilePictureKey]);
+
+  useEffect(() => () => {
+    if (localImagePreviewRef.current) {
+      URL.revokeObjectURL(localImagePreviewRef.current);
+    }
+  }, []);
+
+  function handleImageSelected(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/gif", "image/webp"].includes(file.type)) {
+      toast.error("Choose a JPEG, PNG, GIF, or WebP image.");
+      return;
+    }
+
+    if (localImagePreviewRef.current) {
+      URL.revokeObjectURL(localImagePreviewRef.current);
+    }
+    pendingImageFileRef.current = file;
+    localImagePreviewRef.current = URL.createObjectURL(file);
+    setLocalImagePreviewUrl(localImagePreviewRef.current);
+  }
+
+  async function uploadProfilePicture(file, token) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${API_BASE_URL}/api/users/me/profile-picture`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Profile-picture upload failed.");
+    return data.key;
+  }
 
   async function handleSave(e) {
     e.preventDefault();
@@ -98,24 +190,44 @@ export function ProfilePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Update failed");
 
+      let updatedUser = data.user;
+      if (pendingImageFileRef.current) {
+        setIsUploadingImage(true);
+        const key = await uploadProfilePicture(pendingImageFileRef.current, token);
+        pendingImageFileRef.current = null;
+        updatedUser = { ...updatedUser, profilePicKey: key, ProfilePicKey: key };
+      }
+
       setProfile({
-        name: data.user.name ?? "",
-        email: data.user.email ?? "",
-        college: data.user.college ?? "",
-        residence: data.user.residence ?? "",
-        year: data.user.year ?? "",
-        bio: data.user.bio ?? "",
-        languages: data.user.languages,
-        profilePic: data.user.profilePic ?? "",
+        name: updatedUser.name ?? "",
+        email: updatedUser.email ?? "",
+        college: updatedUser.college ?? "",
+        residence: updatedUser.residence ?? "",
+        year: updatedUser.year ?? "",
+        bio: updatedUser.bio ?? "",
+        languages: updatedUser.languages,
+        profilePic: updatedUser.profilePic ?? "",
       });
 
-      updateUser(data.user);
+      updateUser(updatedUser);
       toast.success("Profile updated successfully!");
       setIsEditing(false);
     } catch (err) {
       alert(err.message);
+    } finally {
+      setIsUploadingImage(false);
     }
   };
+
+  function handleCancelEdit() {
+    pendingImageFileRef.current = null;
+    if (localImagePreviewRef.current) {
+      URL.revokeObjectURL(localImagePreviewRef.current);
+      localImagePreviewRef.current = "";
+    }
+    setLocalImagePreviewUrl("");
+    setIsEditing(false);
+  }
 
   
   const toggleLanguage = (language) => {
@@ -126,6 +238,10 @@ export function ProfilePage() {
         : [...prev.languages, language]
     }));
   };
+
+  const profileImageSrc = localImagePreviewUrl || signedImageUrl ||
+    (profilePictureKey.startsWith("http") ? profilePictureKey : user?.profilePic) ||
+    "../logo.svg";
   
 
   return (
@@ -141,12 +257,12 @@ export function ProfilePage() {
           </Button>
         ) : (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsEditing(false)}>
+            <Button variant="outline" onClick={handleCancelEdit} disabled={isUploadingImage}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={isUploadingImage}>
               <Save className="w-4 h-4 mr-2" />
-              Save Changes
+              {isUploadingImage ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         )}
@@ -161,22 +277,41 @@ export function ProfilePage() {
           <div className="flex items-center gap-6">
             <div className="relative">
               <img 
-                src={ user?.profilePic || "../logo.svg"} 
+                src={profileImageSrc}
                 alt="Profile"
                 className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
               />
               {isEditing && (
-                <button className="absolute bottom-0 right-0 w-8 h-8 bg-teal-500 hover:bg-teal-600 text-white rounded-full flex items-center justify-center shadow-lg">
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                  aria-label="Choose a profile image"
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-teal-500 hover:bg-teal-600 text-white rounded-full flex items-center justify-center shadow-lg disabled:opacity-50"
+                >
                   <Camera className="w-4 h-4" />
                 </button>
               )}
             </div>
             {isEditing && (
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-2">Upload a new profile picture</p>
-                <Button variant="outline" size="sm">
+                <p className="text-sm text-muted-foreground mb-2">Choose a picture, then save your changes to upload it</p>
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleImageSelected}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                >
                   <Camera className="w-4 h-4 mr-2" />
-                  Choose Image
+                  {isUploadingImage ? "Uploading..." : "Choose Image"}
                 </Button>
               </div>
             )}

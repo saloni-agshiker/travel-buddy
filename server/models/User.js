@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema(
       enum: LANGUAGES,
       default: []
     },
-    profilePic: { type: String, default: "https://api.dicebear.com/7.x/identicon/svg?seed=default" }
+    profilePicKey: { type: String, default: "https://api.dicebear.com/7.x/identicon/svg?seed=default" }
   },
   { timestamps: true }
 );
